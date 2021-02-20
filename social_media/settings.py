@@ -130,4 +130,4 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# AUTH_USER_MODEL = 'user.UserProfile'
+AUTH_USER_MODEL = 'user.UserProfile'
