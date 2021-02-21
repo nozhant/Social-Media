@@ -11,7 +11,7 @@ from django.db.models import Q
 from response_management.EMS import *
 
 from user.models import UserProfile, Otp
-from user.serializers import UserProfileSerializer, OtpSerializer
+from user.serializers import UserProfileSerializer, OtpSerializer, UserProfileShowSerializer, UserProfileGetSerializer
 
 
 def generate_otp():
@@ -65,7 +65,7 @@ class Register(APIView):
 
             return Response(response_json, status=400)
 
-        # create new user 
+        # create new user
         request_json = {
             "username": request.data.get('username'),
             "password": make_password(request.data.get('password')),
@@ -136,4 +136,41 @@ class Login(APIView):
 
             return Response(response_json, status=401)
 
+
+class Profile(APIView):
+    """Allow user to see and edit their profile"""
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+
+        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        if not user_obj:
+            return existence_error('user')
+
+        user_serialized = UserProfileGetSerializer(user_obj)
+
+        followings = user_serialized.data.get('following')
+        followers = user_serialized.data.get('follower')
+        if not followings:
+            followings_num = 0
+        else:
+            followings_num = len(followings)
+
+        if not followers:
+            followers_num = 0
+        else:
+            followers_num = len(followers)
+
+        response_json = {
+            'status': True,
+            'message': 'successful',
+            'data': {
+                'user': user_serialized.data,
+                'followings': followings_num,
+                'followers': followers_num
+                     }
+        }
+
+        return Response(response_json, status=200)
 

@@ -2,11 +2,13 @@ from django.urls import path
 
 from user.views import (
     Register,
-    Login
+    Login,
+    Profile
 
 )
 
 urlpatterns = [
     path('register', Register.as_view()),
     path('login', Login.as_view()),
+    path('profile', Profile.as_view())
 ]
