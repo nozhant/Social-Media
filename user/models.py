@@ -4,8 +4,8 @@ from django.contrib.auth.models import PermissionsMixin
 from django.utils import timezone
 
 
-def profile_image_directory(instance, filename):
-    return 'user_{0}/ProfileImage/{1}'.format(instance.id, filename)
+def user_profile_photo(instance, filename):
+    return 'user_{0}/ProfilePhoto/{1}'.format(instance.id, filename)
 
 
 class UserProfileManager(BaseUserManager):
@@ -66,10 +66,8 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         null=True
     )
 
-    profile_photo = models.ImageField(
-        blank=True,
-        null=True,
-        upload_to=profile_image_directory
+    profile_photo = models.FileField(
+        upload_to=user_profile_photo
     )
 
     bio = models.TextField(
@@ -82,17 +80,9 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         null=True
     )
 
-    followers = models.IntegerField(
-        default=0
-    )
+    following = models.ManyToManyField('self', related_name='user_following')
 
-    following = models.IntegerField(
-        default=0
-    )
-
-    number_of_posts = models.IntegerField(
-        default=0
-    )
+    follower = models.ManyToManyField('self', related_name='user_follower')
 
     join_date = models.DateTimeField(
         default=timezone.now,
@@ -112,6 +102,26 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
+
+
+class Otp(models.Model):
+
+    email_phone = models.CharField(
+        max_length=128,
+        blank=True,
+        null=True
+    )
+
+    code = models.CharField(
+        max_length=5,
+        blank=True,
+        null=True
+    )
+
+
+
+
+
 
 
 
