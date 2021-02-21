@@ -1,5 +1,7 @@
 from django.urls import path
 
-urlpatterns = [
+from post.views import *
 
+urlpatterns = [
+    path('create/', CreatePost.as_view()),
 ]
