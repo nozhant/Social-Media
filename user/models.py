@@ -4,7 +4,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.utils import timezone
 
 
-def user_profile_photo(instance, filename):
+def profile_image_directory(instance, filename):
     return 'user_{0}/ProfilePhoto/{1}'.format(instance.id, filename)
 
 
@@ -67,7 +67,9 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
     )
 
     profile_photo = models.FileField(
-        upload_to=user_profile_photo
+        upload_to=profile_image_directory,
+        blank=True,
+        null=True
     )
 
     bio = models.TextField(
