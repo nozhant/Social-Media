@@ -10,10 +10,12 @@ class UserProfileSerializer(ModelSerializer):
 
 
 class UserProfileShowSerializer(ModelSerializer):
-
     class Meta:
         model = UserProfile
-        exclude = ('password', 'groups', 'user_permissions', 'is_staff', 'phone_number', 'email',)
+        exclude = (
+            'password', 'groups', 'user_permissions', 'is_staff', 'phone_number', 'email', 'last_login', 'is_superuser',
+            'join_date', 'is_active'
+        )
 
 
 class UserProfileGetSerializer(ModelSerializer):
@@ -22,7 +24,30 @@ class UserProfileGetSerializer(ModelSerializer):
 
     class Meta:
         model = UserProfile
-        exclude = ('password', 'groups', 'user_permissions', 'is_staff', 'phone_number', 'email',)
+        exclude = ('password', 'groups', 'user_permissions', 'is_staff', 'phone_number', 'email',
+                   'last_login',
+                   'is_superuser', 'join_date', 'is_active')
+
+
+class UserProfileForPostSerializer(ModelSerializer):
+    class Meta:
+        model = UserProfile
+        exclude = (
+            'password',
+            'groups',
+            'user_permissions',
+            'is_staff',
+            'phone_number',
+            'email',
+            'last_login',
+            'is_superuser',
+            'bio',
+            'website',
+            'join_date',
+            'is_active',
+            'following',
+            'follower',
+        )
 
 
 class OtpSerializer(ModelSerializer):
