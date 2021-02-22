@@ -39,10 +39,14 @@ class PostLikeSerializer(ModelSerializer):
 
 
 class PostCommentSerializer(ModelSerializer):
-    user = UserProfileForPostSerializer(many=True)
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
         exclude = (
             'post',
         )
+
+    def get_user(self, obj):
+        u = obj.user
+        return UserProfileForPostSerializer(u).data

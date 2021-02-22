@@ -28,7 +28,6 @@ class UserPost(APIView):
                 'comments': PostCommentSerializer(comments, many=True).data,
             }
             _list.append(ctx)
-        # post_serial = PostSerializer(user_posts, many=True)
 
         return successful_response(_list)
 
