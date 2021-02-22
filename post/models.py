@@ -20,11 +20,15 @@ class Post(models.Model):
     )
 
     lat = models.CharField(
-        max_length=50
+        max_length=50,
+        blank=True,
+        null=True
     )
 
     long = models.CharField(
-        max_length=50
+        max_length=50,
+        blank=True,
+        null=True
     )
 
     story = models.BooleanField(
@@ -90,4 +94,3 @@ class PostFile(models.Model):
     file = models.FileField(
         upload_to=post_file
     )
-
