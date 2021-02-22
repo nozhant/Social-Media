@@ -10,6 +10,18 @@ class PostSerializer(ModelSerializer):
         fields = '__all__'
 
 
+class StorySerializer(ModelSerializer):
+    user = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Post
+        fields = '__all__'
+
+    def get_user(self, obj):
+        u = obj.user
+        return UserProfileForPostSerializer(u).data
+
+
 class PostFilesSerializer(ModelSerializer):
     class Meta:
         model = PostFile

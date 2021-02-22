@@ -1,4 +1,3 @@
-from django.shortcuts import render
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -31,5 +30,44 @@ class UserPost(APIView):
 
         return successful_response(_list)
 
-    def post(self, request):
-        pass
+
+class UserStory(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        if not user_obj:
+            return existence_error('user')
+
+        user_serialized = UserProfileGetSerializer(user_obj)
+
+        user_stories = Post.objects.filter(user=user_obj, story=True)
+
+        story_list = []
+        for p in user_stories:
+            tags = Tag.objects.filter(post=p)
+            files = PostFile.objects.filter(post=p)
+            ctx = {
+                'story': PostSerializer(p).data,
+                'files': PostFilesSerializer(files, many=True).data,
+                'tags': PostTagSerializer(tags, many=True).data,
+            }
+            story_list.append(ctx)
+
+        followers = user_serialized.data.get('follower')
+
+        for f in list(followers):
+            f = dict(f)
+            user_stories = Post.objects.filter(user__id=f.get('id'), story=True)
+            for p in user_stories:
+                tags = Tag.objects.filter(post=p)
+                files = PostFile.objects.filter(post=p)
+                ctx = {
+                    'story': PostSerializer(p).data,
+                    'files': PostFilesSerializer(files, many=True).data,
+                    'tags': PostTagSerializer(tags, many=True).data,
+                }
+                story_list.append(ctx)
+
+        return successful_response(story_list)
