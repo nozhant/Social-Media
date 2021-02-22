@@ -25,6 +25,10 @@ class Register(APIView):
         """send otp to user email or phone number for confirmation"""
 
         email_phone = request.GET.get('email_phone')
+        if email_phone is None:
+            return unsuccessful_response(message='set phone or email into query param!', status=200)
+
+        # todo: split phone or email and send otp
 
         request_json = {
             'email_phone': email_phone,
@@ -56,7 +60,6 @@ class Register(APIView):
         # check that otp is correct or not (otp should match with email or phone number
         otp_obj = Otp.objects.filter(Q(email_phone=email) | Q(email_phone=phone_number) & Q(code=otp)).first()
         if not otp_obj:
-
             response_json = {
                 'status': False,
                 'message': 'otp is incorrect',
@@ -100,7 +103,8 @@ class Login(APIView):
 
         # get username or email from user
         if request.data.get('username') or request.data.get('email'):
-            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')), Q(email=request.data.get('email'))).first()
+            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')) |
+                                                  Q(email=request.data.get('email'))).first()
             if not user_obj:
                 return existence_error('user')
 
@@ -169,8 +173,7 @@ class Profile(APIView):
                 'user': user_serialized.data,
                 'followings': followings_num,
                 'followers': followers_num
-                     }
+            }
         }
 
         return Response(response_json, status=200)
-

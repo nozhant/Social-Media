@@ -6,7 +6,7 @@ def validate_error(serialized):
         {
             'status': False,
             'message': serialized.errors,
-            'data': ''
+            'data': {}
         },
         status=200
     )
@@ -39,7 +39,7 @@ def unsuccessful_response(message='unsuccessful', status=400):
         {
             'status': False,
             'message': message,
-            'data': ''
+            'data': {}
         },
         status=status
     )
