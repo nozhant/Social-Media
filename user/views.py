@@ -41,8 +41,6 @@ class Register(APIView):
             return validate_error(otp_serialized)
         otp_serialized.save()
 
-        # send otp via email or sms
-
         response_json = {
             'status': True,
             'message': 'otp successfully sent to user',
@@ -390,6 +388,62 @@ class FollowOrUnfollow(APIView):
             }
 
             return Response(response_json, status=200)
+
+
+class ForgetPassword(APIView):
+
+    def post(self, request):
+
+        email = request.data.get('email').lower()
+        code = generate_otp()
+
+        user_obj = UserProfile.objects.filter(email=email)
+        if not user_obj:
+            return existence_error('user')
+
+        request_json = {
+            'email_phone': email,
+            'code': code
+        }
+
+        otp_serialized = OtpSerializer(data=request_json)
+        if not otp_serialized.is_valid():
+            return validate_error(otp_serialized)
+        otp_serialized.save()
+
+        # todo: send email and set the body of email
+        url = '..../user/reset-password?code={0}'.format(code)
+
+        return Response({'succeeded': True}, status=200)
+
+
+class ResetPassword(APIView):
+
+    def post(self, request):
+
+        code = request.GET.get('code')
+
+        otp_obj = Otp.objects.filter(code=code).first()
+        if otp_obj is None:
+            return existence_error('verification_code')
+
+        user_obj = UserProfile.objects.filter(email=otp_obj.email_phone).first()
+        if user_obj is None:
+            return existence_error('user')
+
+        request_json = {
+            'password': make_password(request.data.get('new_password'))
+        }
+
+        user_serialized = UserProfileSerializer(user_obj, data=request_json, partial=True)
+        if not user_serialized.is_valid():
+            return validate_error(user_serialized)
+        user_serialized.save()
+
+        otp_obj.delete()
+
+        return Response({'succeeded': True}, status=200)
+
 
 
 

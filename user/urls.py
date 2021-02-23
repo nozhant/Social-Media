@@ -5,8 +5,9 @@ from user.views import (
     Login,
     Profile,
     ChangePassword,
-    FollowOrUnfollow
-
+    FollowOrUnfollow,
+    ForgetPassword,
+    ResetPassword
 )
 
 urlpatterns = [
@@ -14,5 +15,7 @@ urlpatterns = [
     path('login', Login.as_view()),
     path('profile', Profile.as_view()),
     path('change-password', ChangePassword.as_view()),
-    path('follow-unfollow', FollowOrUnfollow.as_view())
+    path('follow-unfollow', FollowOrUnfollow.as_view()),
+    path('forget-password', ForgetPassword.as_view()),
+    path('reset-password', ResetPassword.as_view())
 ]
