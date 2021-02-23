@@ -66,6 +66,10 @@ class UserPost(APIView):
 
         return successful_response(PostFilesSerializer(files, many=True).data)
 
+    def delete(self, request):
+        Post.objects.filter(id=request.GET.get('id')).delete()
+        return successful_response({})
+
 
 class UserStory(APIView):
     authentication_classes = [TokenAuthentication]
