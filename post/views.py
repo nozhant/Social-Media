@@ -30,6 +30,42 @@ class UserPost(APIView):
 
         return successful_response(_list)
 
+    def post(self, request):
+
+        temp = {'user': request.user.id}
+        temp.update(request.data)
+
+        post_serial = PostSerializer(data=temp)
+
+        if not post_serial.is_valid():
+            return validate_error(post_serial)
+
+        if request.data.get('story'):
+            story = Post.objects.filter(user=request.user, story=True)
+            if story.exists():
+                return unsuccessful_response(message='you have a story, remove it first', status=200)
+
+        post_serial.save()
+
+        tag = Tag.objects.create(post_id=post_serial.data.get('id'))
+        tag.user.add(*request.data.get('tag_peoples'))
+
+        return successful_response(post_serial.data)
+
+    def put(self, request):
+        num_of_file = len(request.FILES)
+
+        files = []
+        for i in range(0, num_of_file):
+            files.append(
+                PostFile.objects.create(
+                    post_id=request.data.get('id'),
+                    file=request.FILES.get('file{}'.format(str(i))),
+                ),
+            )
+
+        return successful_response(PostFilesSerializer(files, many=True).data)
+
 
 class UserStory(APIView):
     authentication_classes = [TokenAuthentication]
