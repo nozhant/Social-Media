@@ -11,7 +11,8 @@ from django.db.models import Q
 from response_management.EMS import *
 
 from user.models import UserProfile, Otp
-from user.serializers import UserProfileSerializer, OtpSerializer, UserProfileShowSerializer, UserProfileGetSerializer
+from user.serializers import UserProfileSerializer, OtpSerializer, UserProfileShowSerializer, UserProfileGetSerializer, EditUserProfileSerializer
+from post.models import Post
 
 
 def generate_otp():
@@ -148,7 +149,12 @@ class Profile(APIView):
 
     def get(self, request):
 
-        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        user_id = request.data.get('user_id')
+
+        if user_id:
+            user_obj = UserProfile.objects.filter(id=user_id).first()
+        else:
+            user_obj = UserProfile.objects.filter(id=request.user.id).first()
         if not user_obj:
             return existence_error('user')
 
@@ -166,14 +172,78 @@ class Profile(APIView):
         else:
             followers_num = len(followers)
 
+        posts_num = Post.objects.filter(user=request.user.id).count()
+
         response_json = {
             'status': True,
             'message': 'successful',
             'data': {
                 'user': user_serialized.data,
                 'followings': followings_num,
-                'followers': followers_num
+                'followers': followers_num,
+                'posts': posts_num
             }
         }
 
         return Response(response_json, status=200)
+
+    def post(self, request):
+        """Allow user to update their profile info"""
+
+        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        if not user_obj:
+            return existence_error('user')
+
+        request_json = {
+            'username': request.data.get('username'),
+            'name': request.data.get('name'),
+            'last_name': request.data.get('last_name'),
+            'bio': request.data.get('bio'),
+            'website': request.data.get('website'),
+            'email': request.data.get('email'),
+            'phone_number': request.data.get('phone_number')
+        }
+
+        user_serialized = EditUserProfileSerializer(user_obj, data=request_json, partial=True)
+        if not user_serialized.is_valid():
+            return validate_error(user_serialized)
+        user_serialized.save()
+
+        response_json = {
+            'status': True,
+            'message': 'successful',
+            'data': {}
+        }
+
+        return Response(response_json, status=201)
+
+    def patch(self, request):
+        """Allow user to update their profile photo"""
+
+        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        if not user_obj:
+            return existence_error('user')
+
+        request_json = {
+            'profile_photo': request.data.get('profile_photo')
+        }
+
+        user_serialized = EditUserProfileSerializer(user_obj, data=request_json, partial=True)
+        if not user_serialized.is_valid():
+            return validate_error(user_serialized)
+        user_serialized.save()
+
+        response_json = {
+            'status': True,
+            'message': 'successful',
+            'data': {}
+        }
+
+        return Response(response_json, status=201)
+
+
+
+
+
+
+
