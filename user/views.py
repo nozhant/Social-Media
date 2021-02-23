@@ -4,7 +4,7 @@ from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.base_user import AbstractBaseUser
 from django.db.models import Q
 
@@ -149,7 +149,7 @@ class Profile(APIView):
 
     def get(self, request):
 
-        user_id = request.data.get('user_id')
+        user_id = request.GET.get('user_id')
 
         if user_id:
             user_obj = UserProfile.objects.filter(id=user_id).first()
@@ -240,6 +240,52 @@ class Profile(APIView):
         }
 
         return Response(response_json, status=201)
+
+
+class ChangePassword(APIView):
+    """Allow user to change their password"""
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+
+        old_password = request.data.get('old_password')
+        new_password = request.data.get('new_password')
+
+        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        if not user_obj:
+            return existence_error('user')
+
+        if check_password(old_password):
+
+            request_json = {
+                'password': new_password
+            }
+
+            user_serialized = UserProfileSerializer(user_obj, data=request_json, partial=True)
+            if not user_serialized.is_valid():
+                return validate_error(user_serialized)
+            user_serialized.save()
+
+            response_json = {
+                'status': True,
+                'message': "The password successfully changed",
+                'data': {}
+            }
+
+            return Response(response_json, status=200)
+
+        else:
+            response_json = {
+                'status': False,
+                'message': "Password is wrong",
+                'data': {}
+            }
+
+            return Response(response_json, status=200)
+
+
+
 
 
 
