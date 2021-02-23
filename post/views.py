@@ -133,3 +133,27 @@ class UserHome(APIView):
         }
 
         return successful_response(ctx)
+
+
+class Post(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        post_id = request.GET.get('id')
+
+        like = Like.objects.filter(post_id=post_id)
+        if like.exists():
+            like = like.first()
+            like.user.add(request.user.id)
+        else:
+            like = Like.objects.create(post_id=post_id)
+            like.user.add(request.user.id)
+
+        return successful_response({})
+
+    def post(self, request):
+
+        comment = Comment.objects.create(**request.data)
+
+        return successful_response(PostCommentSerializer(comment).data)
