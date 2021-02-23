@@ -71,7 +71,7 @@ class UserPost(APIView):
         return successful_response({})
 
 
-class UserStory(APIView):
+class UserHome(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
@@ -95,6 +95,8 @@ class UserStory(APIView):
             }
             story_list.append(ctx)
 
+        post_list = []
+
         followers = user_serialized.data.get('follower')
 
         for f in list(followers):
@@ -110,4 +112,24 @@ class UserStory(APIView):
                 }
                 story_list.append(ctx)
 
-        return successful_response(story_list)
+            user_posts = Post.objects.filter(user__id=f.get('id'), story=False)
+            for p in user_posts:
+                tags = Tag.objects.filter(post=p)
+                files = PostFile.objects.filter(post=p)
+                likes = Like.objects.filter(post=p)
+                comments = Comment.objects.filter(post=p)
+                ctx = {
+                    'post': PostSerializer(p).data,
+                    'files': PostFilesSerializer(files, many=True).data,
+                    'tags': PostTagSerializer(tags, many=True).data,
+                    'likes': PostLikeSerializer(likes, many=True).data,
+                    'comments': PostCommentSerializer(comments, many=True).data,
+                }
+                post_list.append(ctx)
+
+        ctx = {
+            'stories': story_list,
+            'posts': post_list,
+        }
+
+        return successful_response(ctx)
