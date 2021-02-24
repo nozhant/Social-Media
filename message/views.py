@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -130,7 +131,7 @@ class SendMessage(APIView):
             'conversation': request.data.get('conversation_id'),
             'message_creator': request.user.id,
             'body': request.data.get('body'),
-            'time': datetime.timestamp(datetime.now())
+            'time': datetime.timestamp(timezone.now())
         }
 
         conversation_obj = Conversation.objects.filter(id=request.data.get('conversation_id')).first()
@@ -160,31 +161,6 @@ class SendMessage(APIView):
         conversation_serialized.save()
 
         return Response({'status': True, "message": "successful", "data": ''}, status=201)
-
-
-class GetMessage(APIView):
-    """Return message data"""
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated, ]
-
-    def post(self, request):
-        conversation_id = request.data.get('conversation_id')
-        message_id = request.data.get('message_id')
-        # userId = request.GET.get('userId')
-
-        # check is current user joined in conversion
-        conversation_obj = Conversation.objects.filter(id=conversation_id).first()
-        if conversation_obj is None:
-            return existence_error('conversation')
-        conversation_serialized = ConversationSerializer(conversation_obj)
-        conversation_users = conversation_serialized.data.get('users')
-        if request.user.id not in conversation_users:
-            return Response({'status': False, 'message': 'this conversation is not for you', "data": ''}, status=400)
-
-        # messages = Message.objects.exclude(user=userId)
-        messages = Message.objects.filter(conversation_id=conversation_id, creator=message_id)
-        serializer = MessageSerializer(messages, many=True, context={'request': request})
-        return successful_response(serializer.data)
 
 
 class ConversationMessages(APIView):
