@@ -103,14 +103,22 @@ class Login(APIView):
     def post(self, request):
 
         # get username or email from user
-        if request.data.get('username') or request.data.get('email'):
-            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')) |
-                                                  Q(email=request.data.get('email'))).first()
+        if request.data.get('username') or request.data.get('email') or request.data.get('phone_number'):
+            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')) | Q(email=request.data.get('email')), Q(phone_number=request.data.get('phone_number'))).first()
             if not user_obj:
                 return existence_error('user')
 
             # check password is correct or not
             if user_obj.check_password(request.data.get('password')):
+
+                if user_obj.two_step:
+                    response_json = {
+                        'status': True,
+                        'message': 'Two step verification is on for user. proceed via two step verification api to login',
+                        'data': {}
+                    }
+
+                    return Response(response_json, status=200)
 
                 token, created = Token.objects.get_or_create(user=user_obj)
 
@@ -140,6 +148,69 @@ class Login(APIView):
             }
 
             return Response(response_json, status=401)
+
+
+class TwoStepVerificationLogin(APIView):
+    """Process two step verification to login user"""
+
+    def get(self, request):
+        """send otp to user email or phone number for confirmation"""
+
+        email_phone = request.GET.get('email_phone')
+        if email_phone is None:
+            return unsuccessful_response(message='set phone or email into query param!', status=200)
+
+        # todo: split phone or email and send otp
+
+        request_json = {
+            'email_phone': email_phone,
+            'code': generate_otp()
+        }
+
+        otp_serialized = OtpSerializer(data=request_json)
+        if not otp_serialized.is_valid():
+            return validate_error(otp_serialized)
+        otp_serialized.save()
+
+        response_json = {
+            'status': True,
+            'message': 'otp successfully sent to user',
+            'data': {}
+        }
+
+        return Response(response_json, status=200)
+
+    def post(self, request):
+        """Login user after two step verification"""
+
+        email = request.data.get('email')
+        phone_number = request.data.get('phone_number')
+        otp = request.data.get('otp')
+
+        # check that otp is correct or not (otp should match with email or phone number
+        otp_obj = Otp.objects.filter(Q(email_phone=email) | Q(email_phone=phone_number) & Q(code=otp)).first()
+        if not otp_obj:
+            response_json = {
+                'status': False,
+                'message': 'otp is incorrect',
+                'data': {}
+            }
+
+            return Response(response_json, status=400)
+
+        # login user
+        user_obj = UserProfile.objects.filter(
+            Q(phone_number=request.data.get('phone_number')) | Q(email=request.data.get('email'))).first()
+
+        token, created = Token.objects.get_or_create(user=user_obj)
+
+        response_json = {
+            'status': True,
+            'message': 'User successfully Logged in',
+            'data': 'Token {}'.format(token.key)
+        }
+
+        return Response(response_json, status=200)
 
 
 class Logout(APIView):

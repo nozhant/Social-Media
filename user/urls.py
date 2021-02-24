@@ -8,12 +8,14 @@ from user.views import (
     FollowOrUnfollow,
     ForgetPassword,
     ResetPassword,
-    Logout
+    Logout,
+    TwoStepVerificationLogin
 )
 
 urlpatterns = [
     path('register', Register.as_view()),
     path('login', Login.as_view()),
+    path('two-step', TwoStepVerificationLogin.as_view()),
     path('logout', Logout.as_view()),
     path('profile', Profile.as_view()),
     path('change-password', ChangePassword.as_view()),
