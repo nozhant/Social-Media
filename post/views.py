@@ -161,3 +161,29 @@ class Post(APIView):
         comment = Comment.objects.create(**request.data)
 
         return successful_response(PostCommentSerializer(comment).data)
+
+
+class UserFavPost(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        ctx = {'user_id': request.user.id}
+        ctx.update({'post_id': request.data.get('post_id')})
+
+        fav = request.data.get('fav')
+
+        if fav == 1:
+            UserFav.objects.create(**ctx)
+        else:
+            UserFav.objects.filter(**ctx).delete()
+
+        return successful_response({})
+
+    def get(self, request):
+
+        favs = UserFav.objects.filter(user_id=request.user.id)
+
+        print(favs.first())
+
+        return successful_response(UserFavPostSerializer(favs, many=True).data)

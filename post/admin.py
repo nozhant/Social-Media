@@ -6,4 +6,5 @@ admin.site.register(PostFile)
 admin.site.register(Tag)
 admin.site.register(Like)
 admin.site.register(Comment)
+admin.site.register(UserFav)
 

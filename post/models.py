@@ -94,3 +94,8 @@ class PostFile(models.Model):
     file = models.FileField(
         upload_to=post_file
     )
+
+
+class UserFav(models.Model):
+    user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE)

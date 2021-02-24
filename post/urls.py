@@ -7,4 +7,5 @@ urlpatterns = [
     path('user-home/', UserHome.as_view()),
     path('like/', Post.as_view()),
     path('comment/', Post.as_view()),
+    path('fav/', UserFavPost.as_view()),
 ]
