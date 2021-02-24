@@ -141,11 +141,15 @@ class Post(APIView):
 
     def get(self, request):
         post_id = request.GET.get('id')
+        set_like = request.GET.get('like')
 
         like = Like.objects.filter(post_id=post_id)
         if like.exists():
             like = like.first()
-            like.user.add(request.user.id)
+            if set_like == 1:
+                like.user.add(request.user.id)
+            else:
+                like.user.remove(request.user.id)
         else:
             like = Like.objects.create(post_id=post_id)
             like.user.add(request.user.id)
