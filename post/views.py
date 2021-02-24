@@ -160,7 +160,7 @@ class PostView(APIView):
         like = Like.objects.filter(post_id=post_id)
         if like.exists():
             like = like.first()
-            if set_like == 1:
+            if set_like == '1':
                 like.user.add(request.user.id)
             else:
                 like.user.remove(request.user.id)
@@ -198,6 +198,17 @@ class UserFavPost(APIView):
 
         favs = UserFav.objects.filter(user_id=request.user.id)
 
-        print(favs.first())
+        fav_list = UserFavPostSerializer(favs, many=True).data
 
-        return successful_response(UserFavPostSerializer(favs, many=True).data)
+        index = 0
+        for f in favs:
+            ctx = fav_list[index]
+            post_id = f.post.id
+
+            files = PostFile.objects.filter(post_id=post_id)
+
+            ctx.update({'files': PostFilesSerializer(files, many=True).data})
+
+            index += 1
+
+        return successful_response(fav_list)
