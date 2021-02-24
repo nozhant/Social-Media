@@ -32,9 +32,17 @@ class Conversation(models.Model):
         null=True
     )
 
-    last_message = models.FloatField(default=datetime.timestamp(timezone.now()), blank=True, null=True)  # timestamp
+    last_message = models.FloatField(
+        default=datetime.timestamp(timezone.now()),
+        blank=True,
+        null=True
+    )  # timestamp
 
-    last_message_body = models.CharField(max_length=4096, blank=True, null=True)
+    last_message_body = models.CharField(
+        max_length=4096,
+        blank=True,
+        null=True
+    )
 
 
 class Message(models.Model):
