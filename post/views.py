@@ -135,11 +135,25 @@ class UserHome(APIView):
         return successful_response(ctx)
 
 
-class Post(APIView):
+class PostView(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+        post_id = request.GET.get('id')
+        like = Like.objects.filter(post_id=post_id)
+        tags = Tag.objects.filter(post_id=post_id)
+        comments = Comment.objects.filter(post_id=post_id)
+
+        ctx = {
+            'likes': PostLikeSerializer(like, many=True).data,
+            'tags': PostTagSerializer(tags, many=True).data,
+            'comments': PostCommentSerializer(comments, many=True).data,
+        }
+
+        return successful_response(ctx)
+
+    def put(self, request):
         post_id = request.GET.get('id')
         set_like = request.GET.get('like')
 

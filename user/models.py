@@ -82,9 +82,9 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         null=True
     )
 
-    following = models.ManyToManyField('self', related_name='user_following')
+    following = models.ManyToManyField('self', null=True, blank=True, related_name='user_following')
 
-    follower = models.ManyToManyField('self', related_name='user_follower')
+    follower = models.ManyToManyField('self', null=True, blank=True, related_name='user_follower')
 
     join_date = models.DateTimeField(
         default=timezone.now,
