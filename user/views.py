@@ -86,6 +86,8 @@ class Register(APIView):
 
         token, created = Token.objects.get_or_create(user=user_obj)
 
+        otp_obj.delete()
+
         response_json = {
             'status': True,
             'message': 'User successfully registered',
