@@ -140,6 +140,25 @@ class Login(APIView):
             return Response(response_json, status=401)
 
 
+class UserLogoutView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            request.user.auth_token.delete()
+        except (AttributeError,):
+            pass
+
+        response_json = {
+            'status': True,
+            'message': 'successful',
+            'data': ''
+        }
+
+        return Response(response_json, status=200)
+
+
 class Profile(APIView):
     """Allow user to see and edit their profile"""
     authentication_classes = [TokenAuthentication]
