@@ -65,16 +65,11 @@ class PostCommentSerializer(ModelSerializer):
 
 
 class UserFavPostSerializer(ModelSerializer):
-    user = serializers.SerializerMethodField()
     post = serializers.SerializerMethodField()
 
     class Meta:
         model = Comment
-        fields = ['id', 'post', 'user']
-
-    def get_user(self, obj):
-        u = obj.user
-        return UserProfileForPostSerializer(u).data
+        fields = ['id', 'post']
 
     def get_post(self, obj):
         p = obj.post
