@@ -8,4 +8,5 @@ urlpatterns = [
     path('like/', PostView.as_view()),
     path('comment/', PostView.as_view()),
     path('fav/', UserFavPost.as_view()),
+    path('search/', Search.as_view()),
 ]

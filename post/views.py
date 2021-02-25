@@ -212,3 +212,42 @@ class UserFavPost(APIView):
             index += 1
 
         return successful_response(fav_list)
+
+
+class Search(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        posts = Post.objects.all()
+
+        max = 0
+        for p in posts:
+            c = Like.objects.filter(post=p)
+            if c.exists():
+                c = c.first().user.count()
+                if c > max:
+                    max = c
+
+        max /= 2
+        max = int(max)
+
+        if request.GET.get('query') is not None:
+            posts = Post.objects.filter(caption__contains=request.GET.get('query'))
+        post_list = []
+
+        for p in posts:
+            c = Like.objects.filter(post=p)
+            if c.exists():
+                c = c.first().user.count()
+
+                if c > max:
+                    files = PostFile.objects.filter(post=p)
+
+                    ctx = {
+                        'post': PostSerializer(p).data,
+                        'files': PostFilesSerializer(files, many=True).data
+                    }
+                    post_list.append(ctx)
+
+        return successful_response(post_list)
