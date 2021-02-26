@@ -26,7 +26,7 @@ class UserProfileGetSerializer(ModelSerializer):
         model = UserProfile
         exclude = ('password', 'groups', 'user_permissions', 'is_staff', 'phone_number', 'email',
                    'last_login',
-                   'is_superuser', 'join_date', 'is_active')
+                   'is_superuser', 'join_date', 'is_active', 'two_step')
 
 
 class UserProfileForPostSerializer(ModelSerializer):
