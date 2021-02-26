@@ -349,7 +349,7 @@ class ChangePassword(APIView):
         if user_obj.check_password(old_password):
 
             request_json = {
-                'password': new_password
+                'password': make_password(new_password)
             }
 
             user_serialized = UserProfileSerializer(user_obj, data=request_json, partial=True)
