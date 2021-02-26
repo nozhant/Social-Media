@@ -56,68 +56,26 @@ class ConversationList(APIView):
         return Response(response_json, status=200)
 
 
-class ConversationEdit(APIView):
+class DeleteConversation(APIView):
     """Allows user to Add users to a conversation or remove from it"""
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated, ]
 
-    def post(self, request):  # add a new user to conversation
+    def delete(self, request):
 
-        conversation_obj = Conversation.objects.filter(id=request.data.get('conversation_id')).first()
-        if conversation_obj is None:
+        conversation_obj = Conversation.objects.filter(id=request.GET.get('conversation_id'), users=request.user.id).first()
+        if not conversation_obj:
             return existence_error('conversation')
 
-        conversation_serialized = ConversationSerializer(conversation_obj)
-        conversation_users = conversation_serialized.data.get('users')
-        conversation_creator = conversation_serialized.data.get('creator')
+        conversation_obj.delete()
 
-        if request.user.id == conversation_creator:
+        response_json = {
+            'status': True,
+            'message': 'successful',
+            'data': {}
+        }
 
-            conversation_users.append(request.data.get('user_id'))
-
-            # update conversation with new users
-            request_json = {
-                'users': conversation_users,
-            }
-
-            conversation_update_serialized = ConversationSerializer(conversation_obj, data=request_json, partial=True)
-            if not conversation_update_serialized.is_valid():
-                return validate_error(conversation_update_serialized)
-            conversation_update_serialized.save()
-
-            return Response({'status': True, "message": "successful", "data": ''}, status=200)
-
-        else:
-            return Response({"status": False, "message": "You are not this conversation's creator", "data": ''}, status=201)
-
-    def patch(self, request):  # remove a user from a conversation
-
-        conversation_obj = Conversation.objects.filter(id=request.data.get('conversation_id')).first()
-        if conversation_obj is None:
-            return existence_error('conversation')
-
-        conversation_serialized = ConversationSerializer(conversation_obj)
-        conversation_users = conversation_serialized.data.get('users')
-        conversation_creator = conversation_serialized.data.get('creator')
-
-        if request.user.id == conversation_creator:
-
-            conversation_users.remove(request.data.get('user_id'))
-
-            # update conversation with new users
-            request_json = {
-                'users': conversation_users,
-            }
-
-            conversation_update_serialized = ConversationSerializer(conversation_obj, data=request_json, partial=True)
-            if not conversation_update_serialized.is_valid():
-                return validate_error(conversation_update_serialized)
-            conversation_update_serialized.save()
-
-            return Response({'status': True, "message": "successful", "data": ''}, status=200)
-
-        else:
-            return Response({"status": False, "message": "You are not this conversation's creator", "data": ''}, status=201)
+        return Response(response_json, status=200)
 
 
 class SendMessage(APIView):
