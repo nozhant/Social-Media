@@ -172,17 +172,14 @@ class ConversationMessages(APIView):
         conversation_id = request.data.get('conversation_id')
 
         # check is current user joined in conversion
-        conversation_obj = Conversation.objects.filter(id=conversation_id)
+        conversation_obj = Conversation.objects.filter(id=conversation_id, users=request.user.id).first()
         if conversation_obj is None:
             return existence_error('conversation')
-        conversation_serialized = ConversationSerializer(conversation_obj)
-        conversation_users = conversation_serialized.data.get('users')
-        if request.user.id not in conversation_users:
-            return Response({'status': False, 'message': 'this conversation is not for you'}, status=200)
 
-        # users = Conversation.objects.exclude(user=userId)
-        serializer = ConversationSerializer(conversation_obj, many=True)
-        return successful_response(serializer.data)
+        message_obj = Message.objects.filter(conversation=conversation_id)
+
+        message_serialized = MessageSerializer(message_obj, many=True)
+        return successful_response(message_serialized.data)
 
 
 class MessageSeen(APIView):
