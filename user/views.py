@@ -103,51 +103,46 @@ class Login(APIView):
     def post(self, request):
 
         # get username or email from user
-        if request.data.get('username') or request.data.get('email') or request.data.get('phone_number'):
-            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')) | Q(email=request.data.get('email')) | Q(phone_number=request.data.get('phone_number'))).last()
-            if not user_obj:
-                return existence_error('user')
+        if request.data.get('username'):
+            user_obj = UserProfile.objects.filter(username=request.data.get('username')).first()
+        if request.data.get('email'):
+            user_obj = UserProfile.objects.filter(email=request.data.get('email')).first()
+        if request.data.get('phone_number'):
+            user_obj = UserProfile.objects.filter(phone_number=request.data.get('phone_number')).first()
+        if not user_obj:
+            return existence_error('user')
 
-            # check password is correct or not
-            if user_obj.check_password(request.data.get('password')):
+        # check password is correct or not
+        if user_obj.check_password(request.data.get('password')):
 
-                if user_obj.two_step:
-                    response_json = {
-                        'status': True,
-                        'message': 'Two step verification is on for user. proceed via two step verification api to login',
-                        'data': {}
-                    }
-
-                    return Response(response_json, status=200)
-
-                token, created = Token.objects.get_or_create(user=user_obj)
-
+            if user_obj.two_step:
                 response_json = {
                     'status': True,
-                    'message': 'User successfully Logged in',
-                    'data': 'Token {}'.format(token.key)
+                    'message': 'Two step verification is on for user. proceed via two step verification api to login',
+                    'data': {}
                 }
 
                 return Response(response_json, status=200)
 
-            else:
+            token, created = Token.objects.get_or_create(user=user_obj)
 
-                response_json = {
-                    'status': False,
-                    'message': 'Permission Denied. The password is wrong',
-                    'data': {}
-                }
+            response_json = {
+                'status': True,
+                'message': 'User successfully Logged in',
+                'data': 'Token {}'.format(token.key)
+            }
 
-                return Response(response_json, status=403)
+            return Response(response_json, status=200)
 
         else:
+
             response_json = {
                 'status': False,
-                'message': 'Auth Credentials are not provided',
+                'message': 'Permission Denied. The password is wrong',
                 'data': {}
             }
 
-            return Response(response_json, status=401)
+            return Response(response_json, status=403)
 
 
 class TwoStepVerificationLogin(APIView):
