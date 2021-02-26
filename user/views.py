@@ -104,7 +104,7 @@ class Login(APIView):
 
         # get username or email from user
         if request.data.get('username') or request.data.get('email') or request.data.get('phone_number'):
-            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')) | Q(email=request.data.get('email')), Q(phone_number=request.data.get('phone_number'))).first()
+            user_obj = UserProfile.objects.filter(Q(username=request.data.get('username')) | Q(email=request.data.get('email')) | Q(phone_number=request.data.get('phone_number'))).last()
             if not user_obj:
                 return existence_error('user')
 
