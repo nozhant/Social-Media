@@ -1,3 +1,4 @@
+from django.db.models import F
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -158,12 +159,22 @@ class PostView(APIView):
         set_like = request.GET.get('like')
 
         like = Like.objects.filter(post_id=post_id)
+
+        post = Post.objects.filter(id=post_id)
+        follower = UserProfile.objects.filter(follower__id=request.user.id)
+
         if like.exists():
             like = like.first()
             if set_like == '1':
                 like.user.add(request.user.id)
+
+                if not follower.exists():
+                    post.update(number_of_like_out_followers=F('number_of_like_out_followers')+1)
             else:
                 like.user.remove(request.user.id)
+
+                if not follower.exists():
+                    post.update(number_of_like_out_followers=F('number_of_like_out_followers')-1)
         else:
             like = Like.objects.create(post_id=post_id)
             like.user.add(request.user.id)
@@ -171,6 +182,13 @@ class PostView(APIView):
         return successful_response({})
 
     def post(self, request):
+
+        post_id = request.data.get('post_id')
+        post = Post.objects.filter(id=post_id)
+        follower = UserProfile.objects.filter(follower__id=request.user.id)
+
+        if not follower.exists():
+            post.update(number_of_comment_out_followers=F('number_of_comment_out_followers') + 1)
 
         comment = Comment.objects.create(**request.data)
 
@@ -182,14 +200,18 @@ class UserFavPost(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        post_id = request.data.get('post_id')
+
         ctx = {'user_id': request.user.id}
-        ctx.update({'post_id': request.data.get('post_id')})
+        ctx.update({'post_id': post_id})
 
         fav = request.data.get('fav')
 
         if fav == 1:
+            Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved')+1)
             UserFav.objects.create(**ctx)
         else:
+            Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved') - 1)
             UserFav.objects.filter(**ctx).delete()
 
         return successful_response({})
