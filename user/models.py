@@ -114,6 +114,12 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         default=False
     )
 
+    business = models.CharField(max_length=50, null=True, blank=True)
+
+    country = models.CharField(max_length=50, null=True, blank=True)
+
+    city = models.CharField(max_length=50, null=True, blank=True)
+
     objects = UserProfileManager()
 
     USERNAME_FIELD = "username"

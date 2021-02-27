@@ -43,6 +43,10 @@ class Post(models.Model):
         null=True
     )
 
+    number_of_saved = models.IntegerField(default=0)
+    number_of_like_out_followers = models.IntegerField(default=0)
+    number_of_comment_out_followers = models.IntegerField(default=0)
+
 
 class Tag(models.Model):
     post = models.ForeignKey(
