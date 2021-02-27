@@ -53,7 +53,7 @@ class UserProfileForPostSerializer(ModelSerializer):
 class EditUserProfileSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ('username', 'name', 'last_name', 'bio', 'website', 'email', 'phone_number', 'profile_photo')
+        fields = ('username', 'name', 'last_name', 'bio', 'website', 'email', 'phone_number', 'profile_photo', 'business', 'country', 'city')
 
 
 class OtpSerializer(ModelSerializer):

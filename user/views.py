@@ -286,7 +286,10 @@ class Profile(APIView):
             'bio': request.data.get('bio'),
             'website': request.data.get('website'),
             'email': request.data.get('email'),
-            'phone_number': request.data.get('phone_number')
+            'phone_number': request.data.get('phone_number'),
+            'business': request.data.get('business'),
+            'country': request.data.get('country'),
+            'city': request.data.get('city')
         }
 
         user_serialized = EditUserProfileSerializer(user_obj, data=request_json, partial=True)
