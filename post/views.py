@@ -127,7 +127,7 @@ class UserHome(APIView):
 
         for f in list(following):
             f = dict(f)
-            user_posts = Post.objects.filter(user__id=f.get('id'), story=False).order_by('-created_date')[2 * (p - 1): 2 * p]
+            user_posts = Post.objects.filter(user__id=f.get('id'), story=False).order_by('-created_date')[2 * (int(p) - 1): 2 * (int(p))]
             for p in user_posts:
                 tags = Tag.objects.filter(post=p)
                 files = PostFile.objects.filter(post=p)
