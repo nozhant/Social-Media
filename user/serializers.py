@@ -32,22 +32,7 @@ class UserProfileGetSerializer(ModelSerializer):
 class UserProfileForPostSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
-        exclude = (
-            'password',
-            'groups',
-            'user_permissions',
-            'is_staff',
-            'phone_number',
-            'email',
-            'last_login',
-            'is_superuser',
-            'bio',
-            'website',
-            'join_date',
-            'is_active',
-            'following',
-            'follower',
-        )
+        fields = ['id', 'username', 'name', 'last_name', 'profile_photo', 'business', 'country', 'cit']
 
 
 class EditUserProfileSerializer(ModelSerializer):
