@@ -32,7 +32,7 @@ class UserProfileGetSerializer(ModelSerializer):
 class UserProfileForPostSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
-        fields = ['id', 'username', 'name', 'last_name', 'profile_photo', 'business', 'country', 'cit']
+        fields = ['id', 'username', 'name', 'last_name', 'profile_photo', 'business', 'country', 'city']
 
 
 class EditUserProfileSerializer(ModelSerializer):
