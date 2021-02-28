@@ -8,7 +8,7 @@ class PostSerializer(ModelSerializer):
 
     class Meta:
         model = Post
-        fields = '__all__'
+        fields = ['id', 'user', 'caption', 'lat', 'long', 'story', 'created_date']
 
     def get_user(self, obj):
         u = obj.user
