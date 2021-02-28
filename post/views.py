@@ -84,7 +84,7 @@ class UserHome(APIView):
 
         user_serialized = UserProfileGetSerializer(user_obj)
 
-        followers = user_serialized.data.get('following')
+        following = user_serialized.data.get('following')
 
         story_list = []
         for p in user_stories:
@@ -97,9 +97,9 @@ class UserHome(APIView):
             }
             story_list.append(ctx)
 
-        for f in list(followers):
+        for f in list(following):
             f = dict(f)
-            user_stories = Post.objects.filter(user__id=f.get('id'), story=True)
+            user_stories = Post.objects.filter(user__id=f.get('id'), story=True).order_by('-created_date')
             for p in user_stories:
                 tags = Tag.objects.filter(post=p)
                 files = PostFile.objects.filter(post=p)
@@ -123,11 +123,11 @@ class UserHome(APIView):
 
         post_list = []
 
-        followers = user_serialized.data.get('following')
+        following = user_serialized.data.get('following')
 
-        for f in list(followers):
+        for f in list(following):
             f = dict(f)
-            user_posts = Post.objects.filter(user__id=f.get('id'), story=False)[4 * (int(p) - 1): 4 * (int(p))]
+            user_posts = Post.objects.filter(user__id=f.get('id'), story=False).order_by('-created_date')[2 * (p - 1): 2 * p]
             for p in user_posts:
                 tags = Tag.objects.filter(post=p)
                 files = PostFile.objects.filter(post=p)
