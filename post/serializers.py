@@ -4,11 +4,16 @@ from rest_framework import serializers
 
 
 class PostSerializer(ModelSerializer):
+    user = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
         fields = '__all__'
 
+    def get_user(self, obj):
+        u = obj.user
+        return UserProfileForPostSerializer(u).data
+    
 
 class StorySerializer(ModelSerializer):
     user = serializers.SerializerMethodField()
