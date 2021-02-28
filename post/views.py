@@ -77,13 +77,14 @@ class UserHome(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
+
         user_obj = UserProfile.objects.filter(id=request.user.id).first()
-        if not user_obj:
-            return existence_error('user')
+
+        user_stories = Post.objects.filter(user=user_obj, story=True)
 
         user_serialized = UserProfileGetSerializer(user_obj)
 
-        user_stories = Post.objects.filter(user=user_obj, story=True)
+        followers = user_serialized.data.get('following')
 
         story_list = []
         for p in user_stories:
@@ -95,10 +96,6 @@ class UserHome(APIView):
                 'tags': PostTagSerializer(tags, many=True).data,
             }
             story_list.append(ctx)
-
-        post_list = []
-
-        followers = user_serialized.data.get('follower')
 
         for f in list(followers):
             f = dict(f)
@@ -113,7 +110,24 @@ class UserHome(APIView):
                 }
                 story_list.append(ctx)
 
-            user_posts = Post.objects.filter(user__id=f.get('id'), story=False)
+        return successful_response(story_list)
+
+    def post(self, request):
+        p = request.data.get('page', 1)
+
+        user_obj = UserProfile.objects.filter(id=request.user.id).first()
+        if not user_obj:
+            return existence_error('user')
+
+        user_serialized = UserProfileGetSerializer(user_obj)
+
+        post_list = []
+
+        followers = user_serialized.data.get('following')
+
+        for f in list(followers):
+            f = dict(f)
+            user_posts = Post.objects.filter(user__id=f.get('id'), story=False)[4 * (int(p) - 1): 4 * (int(p))]
             for p in user_posts:
                 tags = Tag.objects.filter(post=p)
                 files = PostFile.objects.filter(post=p)
@@ -128,12 +142,7 @@ class UserHome(APIView):
                 }
                 post_list.append(ctx)
 
-        ctx = {
-            'stories': story_list,
-            'posts': post_list,
-        }
-
-        return successful_response(ctx)
+        return successful_response(post_list)
 
 
 class PostView(APIView):
@@ -169,12 +178,12 @@ class PostView(APIView):
                 like.user.add(request.user.id)
 
                 if not follower.exists():
-                    post.update(number_of_like_out_followers=F('number_of_like_out_followers')+1)
+                    post.update(number_of_like_out_followers=F('number_of_like_out_followers') + 1)
             else:
                 like.user.remove(request.user.id)
 
                 if not follower.exists():
-                    post.update(number_of_like_out_followers=F('number_of_like_out_followers')-1)
+                    post.update(number_of_like_out_followers=F('number_of_like_out_followers') - 1)
         else:
             like = Like.objects.create(post_id=post_id)
             like.user.add(request.user.id)
@@ -208,7 +217,7 @@ class UserFavPost(APIView):
         fav = request.data.get('fav')
 
         if fav == 1:
-            Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved')+1)
+            Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved') + 1)
             UserFav.objects.create(**ctx)
         else:
             Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved') - 1)
