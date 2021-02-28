@@ -10,6 +10,7 @@ from django.db.models import Q
 
 from response_management.EMS import *
 
+from social_media.utils import send_email
 from user.models import UserProfile, Otp
 from user.serializers import UserProfileSerializer, OtpSerializer, UserProfileShowSerializer, UserProfileGetSerializer, EditUserProfileSerializer
 from post.models import Post
@@ -29,17 +30,20 @@ class Register(APIView):
         if email_phone is None:
             return unsuccessful_response(message='set phone or email into query param!', status=200)
 
-        # todo: split phone or email and send otp
+        code = generate_otp()
 
         request_json = {
             'email_phone': email_phone,
-            'code': generate_otp()
+            'code': code
         }
 
         otp_serialized = OtpSerializer(data=request_json)
         if not otp_serialized.is_valid():
             return validate_error(otp_serialized)
         otp_serialized.save()
+
+        email_body = "Hi there,You're almost set! Verify your email by enter this code: {0}".format(code)
+        send_email('Verification Code', email_body, email_phone)
 
         response_json = {
             'status': True,
@@ -501,10 +505,17 @@ class ForgetPassword(APIView):
             return validate_error(otp_serialized)
         otp_serialized.save()
 
-        # todo: send email and set the body of email
-        url = '..../user/reset-password?code={0}'.format(code)
+        email_body = 'Here is your link to reset your password: http://94.100.28.185:3520/user/reset-password?code={0}'.format(code)
 
-        return Response({'succeeded': True}, status=200)
+        send_email("Password reset", email_body, email)
+
+        response_json = {
+            'status': True,
+            'message': "successful",
+            'data': {}
+        }
+
+        return Response(response_json, status=200)
 
 
 class ResetPassword(APIView):
