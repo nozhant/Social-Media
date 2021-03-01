@@ -82,18 +82,6 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         null=True
     )
 
-    following = models.ManyToManyField(
-        'self',
-        blank=True,
-        related_name='user_following'
-    )
-
-    follower = models.ManyToManyField(
-        'self',
-        blank=True,
-        related_name='user_follower'
-    )
-
     two_step = models.BooleanField(
         default=False,
         blank=True,
@@ -114,16 +102,52 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         default=False
     )
 
-    business = models.CharField(max_length=50, null=True, blank=True)
+    business = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
 
-    country = models.CharField(max_length=50, null=True, blank=True)
+    country = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
 
-    city = models.CharField(max_length=50, null=True, blank=True)
+    city = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True
+    )
 
     objects = UserProfileManager()
 
     USERNAME_FIELD = "username"
     REQUIRED_FIELDS = []
+
+
+class UserFollowing(models.Model):
+
+    user_id = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE
+    )
+    following_user_id = models.ManyToManyField(
+        UserProfile,
+        related_name="followings",
+    )
+
+
+class UserFollower(models.Model):
+
+    user_id = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE
+    )
+    follower_user_id = models.ManyToManyField(
+        UserProfile,
+        related_name="followers",
+    )
 
 
 class Otp(models.Model):

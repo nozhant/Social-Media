@@ -1,6 +1,6 @@
-from rest_framework.serializers import ModelSerializer
+from rest_framework.serializers import ModelSerializer, SerializerMethodField
 
-from user.models import UserProfile, Otp
+from user.models import UserProfile, Otp, UserFollowing, UserFollower
 
 
 class UserProfileSerializer(ModelSerializer):
@@ -19,8 +19,6 @@ class UserProfileShowSerializer(ModelSerializer):
 
 
 class UserProfileGetSerializer(ModelSerializer):
-    following = UserProfileShowSerializer(many=True)
-    follower = UserProfileShowSerializer(many=True)
 
     class Meta:
         model = UserProfile
@@ -39,6 +37,36 @@ class EditUserProfileSerializer(ModelSerializer):
     class Meta:
         model = UserProfile
         fields = ('username', 'name', 'last_name', 'bio', 'website', 'email', 'phone_number', 'profile_photo', 'business', 'country', 'city')
+
+
+class UserFollowingSerializer(ModelSerializer):
+
+    class Meta:
+        model = UserFollowing
+        fields = '__all__'
+
+
+class UserFollowerSerializer(ModelSerializer):
+
+    class Meta:
+        model = UserFollower
+        fields = '__all__'
+
+
+class UserFollowingShowSerializer(ModelSerializer):
+    following_user_id = UserProfileShowSerializer(many=True)
+
+    class Meta:
+        model = UserFollowing
+        fields = '__all__'
+
+
+class UserFollowerShowSerializer(ModelSerializer):
+    follower_user_id = UserProfileShowSerializer(many=True)
+
+    class Meta:
+        model = UserFollower
+        fields = '__all__'
 
 
 class OtpSerializer(ModelSerializer):
