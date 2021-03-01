@@ -163,17 +163,19 @@ class TwoStepVerificationLogin(APIView):
         if email_phone is None:
             return unsuccessful_response(message='set phone or email into query param!', status=200)
 
-        # todo: split phone or email and send otp
+        code = generate_otp()
 
         request_json = {
             'email_phone': email_phone,
-            'code': generate_otp()
+            'code': code
         }
 
         otp_serialized = OtpSerializer(data=request_json)
         if not otp_serialized.is_valid():
             return validate_error(otp_serialized)
         otp_serialized.save()
+
+        send_email("Two step verification", "Here is your code for verification {0}".format(code), email_phone)
 
         response_json = {
             'status': True,
@@ -206,6 +208,8 @@ class TwoStepVerificationLogin(APIView):
             Q(phone_number=request.data.get('phone_number')) | Q(email=request.data.get('email'))).first()
 
         token, created = Token.objects.get_or_create(user=user_obj)
+
+        otp_obj.delete()
 
         response_json = {
             'status': True,
