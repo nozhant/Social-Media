@@ -1,3 +1,4 @@
+from cache_memoize import cache_memoize
 from django.db.models import F
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -72,6 +73,34 @@ class UserPost(APIView):
         return successful_response({})
 
 
+@cache_memoize(3600)
+def get_posts(user_obj):
+    user_serialized = UserProfileGetSerializer(user_obj)
+
+    following = user_serialized.data.get('following')
+
+    post_list = []
+
+    for f in list(following):
+        f = dict(f)
+        user_posts = Post.objects.filter(user__id=f.get('id'), story=False).order_by('-created_date')
+        for p in user_posts:
+            tags = Tag.objects.filter(post=p)
+            files = PostFile.objects.filter(post=p)
+            likes = Like.objects.filter(post=p)
+            comments = Comment.objects.filter(post=p)
+            ctx = {
+                'post': PostSerializer(p).data,
+                'files': PostFilesSerializer(files, many=True).data,
+                'tags': PostTagSerializer(tags, many=True).data,
+                'likes': PostLikeSerializer(likes, many=True).data,
+                'comments': PostCommentSerializer(comments, many=True).data,
+            }
+            post_list.append(ctx)
+
+    return post_list
+
+
 class UserHome(APIView):
     authentication_classes = [TokenAuthentication]
     permission_classes = [IsAuthenticated]
@@ -119,30 +148,9 @@ class UserHome(APIView):
         if not user_obj:
             return existence_error('user')
 
-        user_serialized = UserProfileGetSerializer(user_obj)
+        post_list = get_posts(user_obj)
 
-        post_list = []
-
-        following = user_serialized.data.get('following')
-
-        for f in list(following):
-            f = dict(f)
-            user_posts = Post.objects.filter(user__id=f.get('id'), story=False).order_by('-created_date')[2 * (int(p) - 1): 2 * (int(p))]
-            for p in user_posts:
-                tags = Tag.objects.filter(post=p)
-                files = PostFile.objects.filter(post=p)
-                likes = Like.objects.filter(post=p)
-                comments = Comment.objects.filter(post=p)
-                ctx = {
-                    'post': PostSerializer(p).data,
-                    'files': PostFilesSerializer(files, many=True).data,
-                    'tags': PostTagSerializer(tags, many=True).data,
-                    'likes': PostLikeSerializer(likes, many=True).data,
-                    'comments': PostCommentSerializer(comments, many=True).data,
-                }
-                post_list.append(ctx)
-
-        return successful_response(post_list)
+        return successful_response(post_list[2 * (int(p) - 1): 2 * (int(p))])
 
 
 class PostView(APIView):
