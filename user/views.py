@@ -89,8 +89,8 @@ class Register(APIView):
             return existence_error('user')
 
         # create following and follower object
-        following_obj = UserFollowing.objects.create(user_id=user_obj)
-        follower_obj = UserFollower.objects.create(user_id=user_obj)
+        following_obj = UserFollowing.objects.create(user=user_obj)
+        follower_obj = UserFollower.objects.create(user=user_obj)
 
         token, created = Token.objects.get_or_create(user=user_obj)
 
@@ -251,13 +251,13 @@ class Profile(APIView):
 
         if user_id:
             user_obj = UserProfile.objects.filter(id=user_id).first()
-            followings_obj = UserFollowing.objects.filter(user_id=user_id).first()
-            followers_obj = UserFollower.objects.filter(user_id=user_id).first()
+            followings_obj = UserFollowing.objects.filter(user=user_id).first()
+            followers_obj = UserFollower.objects.filter(user=user_id).first()
             posts_num = Post.objects.filter(user=user_id).count()
         else:
             user_obj = UserProfile.objects.filter(id=request.user.id).first()
-            followings_obj = UserFollowing.objects.filter(user_id=request.user.id).first()
-            followers_obj = UserFollower.objects.filter(user_id=request.user.id).first()
+            followings_obj = UserFollowing.objects.filter(user=request.user.id).first()
+            followers_obj = UserFollower.objects.filter(user=request.user.id).first()
             posts_num = Post.objects.filter(user=request.user.id).count()
         if not user_obj:
             return existence_error('user')
