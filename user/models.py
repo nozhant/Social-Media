@@ -128,11 +128,11 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
 
 class UserFollowing(models.Model):
 
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE
     )
-    following_user_id = models.ManyToManyField(
+    following = models.ManyToManyField(
         UserProfile,
         related_name="followings",
     )
@@ -140,11 +140,11 @@ class UserFollowing(models.Model):
 
 class UserFollower(models.Model):
 
-    user_id = models.ForeignKey(
+    user = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE
     )
-    follower_user_id = models.ManyToManyField(
+    follower = models.ManyToManyField(
         UserProfile,
         related_name="followers",
     )

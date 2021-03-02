@@ -54,7 +54,7 @@ class UserFollowerSerializer(ModelSerializer):
 
 
 class UserFollowingShowSerializer(ModelSerializer):
-    following_user_id = UserProfileShowSerializer(many=True)
+    following = UserProfileShowSerializer(many=True)
 
     class Meta:
         model = UserFollowing
@@ -62,7 +62,7 @@ class UserFollowingShowSerializer(ModelSerializer):
 
 
 class UserFollowerShowSerializer(ModelSerializer):
-    follower_user_id = UserProfileShowSerializer(many=True)
+    follower = UserProfileShowSerializer(many=True)
 
     class Meta:
         model = UserFollower
