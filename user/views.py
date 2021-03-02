@@ -264,9 +264,9 @@ class Profile(APIView):
 
         user_serialized = UserProfileGetSerializer(user_obj)
         user_followings_serialized = UserFollowingSerializer(followings_obj)
-        followings_num = len(user_followings_serialized.data.get('following_user_id'))
+        followings_num = len(user_followings_serialized.data.get('following'))
         user_followers_serialized = UserFollowerSerializer(followers_obj)
-        followers_num = len(user_followers_serialized.data.get('follower_user_id'))
+        followers_num = len(user_followers_serialized.data.get('follower'))
 
         response_json = {
             'status': True,
@@ -351,7 +351,7 @@ class GetFollowerOrFollowings(APIView):
 
         if followers:
 
-            follower_obj = UserFollower.objects.filter(user_id=request.user.id).first()
+            follower_obj = UserFollower.objects.filter(user=request.user.id).first()
 
             follower_serialized = UserFollowerShowSerializer(follower_obj)
 
@@ -365,7 +365,7 @@ class GetFollowerOrFollowings(APIView):
 
         if followings:
 
-            following_obj = UserFollowing.objects.filter(user_id=request.user.id).first()
+            following_obj = UserFollowing.objects.filter(user=request.user.id).first()
 
             following_serialized = UserFollowingShowSerializer(following_obj)
 
@@ -393,9 +393,9 @@ class GetFollowerOrFollowings(APIView):
         followings = request.data.get('followings')
 
         if followers:
-            follower_objs = UserFollower.objects.filter(user_id=user_id)
+            follower_objs = UserFollower.objects.filter(user=user_id).first()
 
-            follower_serialized = UserFollowerSerializer(follower_objs, many=True)
+            follower_serialized = UserFollowerSerializer(follower_objs)
 
             response_json = {
                 'status': True,
@@ -406,9 +406,9 @@ class GetFollowerOrFollowings(APIView):
             return Response(response_json, status=200)
 
         if followings:
-            following_objs = UserFollowing.objects.filter(user_id=user_id)
+            following_objs = UserFollowing.objects.filter(user=user_id).first()
 
-            following_serialized = UserFollowerSerializer(following_objs, many=True)
+            following_serialized = UserFollowerSerializer(following_objs)
 
             response_json = {
                 'status': True,
@@ -482,18 +482,18 @@ class FollowOrUnfollow(APIView):
 
         if follow:
             # add requested user to user id's followers
-            user_follower_obj = UserFollower.objects.filter(user_id=user_id).first()
+            user_follower_obj = UserFollower.objects.filter(user=user_id).first()
             if not user_follower_obj:
                 return existence_error('follower')
 
-            user_follower_obj.follower_user_id.add(request.user.id)
+            user_follower_obj.follower.add(request.user.id)
 
             # add user id to requested user followings
-            user_following_obj = UserFollowing.objects.filter(user_id=request.user.id).first()
+            user_following_obj = UserFollowing.objects.filter(user=request.user.id).first()
             if not user_following_obj:
                 return existence_error('following')
 
-            user_following_obj.following_user_id.add(user_id)
+            user_following_obj.following.add(user_id)
 
             response_json = {
                 'status': True,
@@ -505,18 +505,18 @@ class FollowOrUnfollow(APIView):
 
         if not follow:
             # remove requested user from user id's followers
-            user_follower_obj = UserFollower.objects.filter(user_id=user_id).first()
+            user_follower_obj = UserFollower.objects.filter(user=user_id).first()
             if not user_follower_obj:
                 return existence_error('follower')
 
-            user_follower_obj.follower_user_id.remove(request.user.id)
+            user_follower_obj.follower.remove(request.user.id)
 
             # remove user id from requested user followings
-            user_following_obj = UserFollowing.objects.filter(user_id=request.user.id).first()
+            user_following_obj = UserFollowing.objects.filter(user=request.user.id).first()
             if not user_following_obj:
                 return existence_error('following')
 
-            user_following_obj.following_user_id.remove(user_id)
+            user_following_obj.following.remove(user_id)
 
             response_json = {
                 'status': True,
