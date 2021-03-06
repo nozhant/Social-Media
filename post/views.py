@@ -75,13 +75,13 @@ class UserPost(APIView):
 
 @cache_memoize(3600)
 def get_posts(user_obj):
-    user_serialized = UserProfileGetSerializer(user_obj)
+    following = UserFollowing.objects.filter(user=user_obj).first()
 
-    following = user_serialized.data.get('following')
+    following_serialized = UserFollowingShowSerializer(following)
 
     post_list = []
 
-    for f in list(following):
+    for f in following_serialized.data.get('following'):
         f = dict(f)
         user_posts = Post.objects.filter(user__id=f.get('id'), story=False).order_by('-created_date')
         for p in user_posts:
@@ -111,10 +111,6 @@ class UserHome(APIView):
 
         user_stories = Post.objects.filter(user=user_obj, story=True)
 
-        user_serialized = UserProfileGetSerializer(user_obj)
-
-        following = user_serialized.data.get('following')
-
         story_list = []
         for p in user_stories:
             tags = Tag.objects.filter(post=p)
@@ -126,7 +122,11 @@ class UserHome(APIView):
             }
             story_list.append(ctx)
 
-        for f in list(following):
+        following = UserFollowing.objects.filter(user=user_obj).first()
+
+        following_serialized = UserFollowingShowSerializer(following)
+
+        for f in following_serialized.data.get('following'):
             f = dict(f)
             user_stories = Post.objects.filter(user__id=f.get('id'), story=True).order_by('-created_date')
             for p in user_stories:
@@ -178,7 +178,8 @@ class PostView(APIView):
         like = Like.objects.filter(post_id=post_id)
 
         post = Post.objects.filter(id=post_id)
-        follower = UserProfile.objects.filter(follower__id=request.user.id)
+
+        follower = UserFollower.objects.filter(user_id=post.first().user, follower__id=request.user.id)
 
         if like.exists():
             like = like.first()
@@ -196,13 +197,16 @@ class PostView(APIView):
             like = Like.objects.create(post_id=post_id)
             like.user.add(request.user.id)
 
+            if not follower.exists():
+                post.update(number_of_like_out_followers=F('number_of_like_out_followers') + 1)
+
         return successful_response({})
 
     def post(self, request):
 
         post_id = request.data.get('post_id')
         post = Post.objects.filter(id=post_id)
-        follower = UserProfile.objects.filter(follower__id=request.user.id)
+        follower = UserFollower.objects.filter(user_id=post.first().user, follower__id=request.user.id)
 
         if not follower.exists():
             post.update(number_of_comment_out_followers=F('number_of_comment_out_followers') + 1)
