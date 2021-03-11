@@ -7,7 +7,7 @@ from email.mime.text import MIMEText
 def send_email(title, mess, receiver):
     mail_content = mess
     sender_gmail = 'helpglimpo@gmail.com'
-    sender_pass = 'ADMINvishal20!'
+    sender_pass = 'AdminVishal20@'
     message = MIMEMultipart()
     message['From'] = sender_gmail
     message['To'] = receiver
