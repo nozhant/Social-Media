@@ -120,6 +120,10 @@ class UserProfile(AbstractBaseUser, PermissionsMixin):
         blank=True
     )
 
+    number_of_saved_posts = models.IntegerField(default=0)
+    number_of_liked_posts_out_followers = models.IntegerField(default=0)
+    number_of_comment_posts_out_followers = models.IntegerField(default=0)
+
     objects = UserProfileManager()
 
     USERNAME_FIELD = "username"

@@ -179,7 +179,9 @@ class PostView(APIView):
 
         post = Post.objects.filter(id=post_id)
 
-        follower = UserFollower.objects.filter(user_id=post.first().user, follower__id=request.user.id)
+        user_post = post.first().user
+
+        follower = UserFollower.objects.filter(user=user_post, follower__id=request.user.id)
 
         if like.exists():
             like = like.first()
@@ -188,17 +190,26 @@ class PostView(APIView):
 
                 if not follower.exists():
                     post.update(number_of_like_out_followers=F('number_of_like_out_followers') + 1)
+                    UserProfile.objects.filter(id=user_post.id).update(
+                        number_of_liked_posts_out_followers=F('number_of_liked_posts_out_followers') + 1
+                    )
             else:
                 like.user.remove(request.user.id)
 
                 if not follower.exists():
                     post.update(number_of_like_out_followers=F('number_of_like_out_followers') - 1)
+                    UserProfile.objects.filter(id=user_post.id).update(
+                        number_of_liked_posts_out_followers=F('number_of_liked_posts_out_followers') - 1
+                    )
         else:
             like = Like.objects.create(post_id=post_id)
             like.user.add(request.user.id)
 
             if not follower.exists():
                 post.update(number_of_like_out_followers=F('number_of_like_out_followers') + 1)
+                UserProfile.objects.filter(id=user_post.id).update(
+                    number_of_liked_posts_out_followers=F('number_of_liked_posts_out_followers') + 1
+                )
 
         return successful_response({})
 
@@ -206,12 +217,16 @@ class PostView(APIView):
 
         post_id = request.data.get('post_id')
         post = Post.objects.filter(id=post_id)
-        follower = UserFollower.objects.filter(user_id=post.first().user, follower__id=request.user.id)
+        user_post = post.first().user
+        follower = UserFollower.objects.filter(user=user_post, follower__id=request.user.id)
 
         if not follower.exists():
             post.update(number_of_comment_out_followers=F('number_of_comment_out_followers') + 1)
+            UserProfile.objects.filter(id=user_post.id).update(
+                number_of_comment_posts_out_followers=F('number_of_comment_posts_out_followers') + 1
+            )
 
-        comment = Comment.objects.create(**request.data)
+        comment = Comment.objects.create(post_id=post_id, user=request.user, text=request.data.get('text'))
 
         return successful_response(PostCommentSerializer(comment).data)
 
@@ -230,9 +245,15 @@ class UserFavPost(APIView):
 
         if fav == 1:
             Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved') + 1)
+            UserProfile.objects.filter(id=post_id.first().user.id).update(
+                number_of_saved_posts=F('number_of_saved_posts') + 1
+            )
             UserFav.objects.create(**ctx)
         else:
             Post.objects.filter(id=post_id).update(number_of_saved=F('number_of_saved') - 1)
+            UserProfile.objects.filter(id=post_id.first().user.id).update(
+                number_of_saved_posts=F('number_of_saved_posts') - 1
+            )
             UserFav.objects.filter(**ctx).delete()
 
         return successful_response({})
