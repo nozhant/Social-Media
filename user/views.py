@@ -1,18 +1,17 @@
 import uuid
 from rest_framework.views import APIView
-from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.hashers import make_password, check_password
-from django.contrib.auth.base_user import AbstractBaseUser
+from django.contrib.auth.hashers import make_password
 from django.db.models import Q
 
 from response_management.EMS import *
+from social_media.AI import ranking_calculator
 
 from social_media.utils import send_email
 from user.models import UserProfile, Otp, UserFollowing, UserFollower
-from user.serializers import UserProfileSerializer, OtpSerializer, UserProfileShowSerializer, UserProfileGetSerializer, EditUserProfileSerializer, UserFollowingSerializer, UserFollowerSerializer, UserFollowingShowSerializer, UserFollowerShowSerializer
+from user.serializers import *
 from post.models import Post
 
 
@@ -350,7 +349,6 @@ class GetFollowerOrFollowings(APIView):
         followings = request.GET.get('followings')
 
         if followers:
-
             follower_obj = UserFollower.objects.filter(user=request.user.id).first()
 
             follower_serialized = UserFollowerShowSerializer(follower_obj)
@@ -364,7 +362,6 @@ class GetFollowerOrFollowings(APIView):
             return Response(response_json, status=200)
 
         if followings:
-
             following_obj = UserFollowing.objects.filter(user=request.user.id).first()
 
             following_serialized = UserFollowingShowSerializer(following_obj)
@@ -548,7 +545,10 @@ class ForgetPassword(APIView):
             return validate_error(otp_serialized)
         otp_serialized.save()
 
-        email_body = 'Here is your link to reset your password: http://94.100.28.185:3520/user/reset-password?code={0}'.format(code)
+        # todo: change base url
+
+        email_body = 'Here is your link to reset your password: http://94.100.28.185:3520/user/reset-password?code={0}'.format(
+            code)
 
         send_email("Password reset", email_body, email)
 
@@ -589,18 +589,41 @@ class ResetPassword(APIView):
         return Response({'succeeded': True}, status=200)
 
 
+class SuggestUsersForFollow(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
+    def get(self, request):
+        _list = []
+        user = UserProfile.objects.filter(country=request.user.country, business=request.GET.get('business'),
+                                          city=request.user.city)
 
+        for u in user:
+            f = UserFollower.objects.filter(user=u)
+            n_o_f = 0
+            if f.exists():
+                n_o_f = f.first().follower.count()
+            ctx = {
+                'user_id': u.id,
+                "numberOfFollowers": n_o_f,
+                "numberOfLikes": u.number_of_liked_posts_out_followers,
+                "numberOfComments": u.number_of_comment_posts_out_followers,
+                "numberOfSaved": u.number_of_saved_posts,
+            }
+            _list.append(ctx)
 
+        if len(_list) == 0:
+            return successful_response([])
 
+        _list = ranking_calculator(_list)
 
+        _list.remove(request.user.id)
 
+        user_list = []
 
+        for u_id in _list:
+            user_list.append(
+                UserProfileForPostSerializer(UserProfile.objects.get(id=u_id)).data
+            )
 
-
-
-
-
-
-
-
+        return successful_response(user_list)

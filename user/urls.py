@@ -1,17 +1,6 @@
 from django.urls import path
 
-from user.views import (
-    Register,
-    Login,
-    Profile,
-    ChangePassword,
-    FollowOrUnfollow,
-    ForgetPassword,
-    ResetPassword,
-    Logout,
-    TwoStepVerificationLogin,
-    GetFollowerOrFollowings
-)
+from user.views import *
 
 urlpatterns = [
     path('register', Register.as_view()),
@@ -23,5 +12,6 @@ urlpatterns = [
     path('change-password', ChangePassword.as_view()),
     path('follow-unfollow', FollowOrUnfollow.as_view()),
     path('forget-password', ForgetPassword.as_view()),
-    path('reset-password', ResetPassword.as_view())
+    path('reset-password', ResetPassword.as_view()),
+    path('suggested-users', SuggestUsersForFollow.as_view()),
 ]
